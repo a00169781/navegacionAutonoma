@@ -11,7 +11,7 @@ test_metadata=pd.read_csv(baseDir + '/Test.csv')
 y_test = []
 
 # Navegamos el directorio Test para crear correctamente nuestra lista de etiquetas
-for root, dirs, files in os.walk(baseDir + "/TestBackup"):
+for root, dirs, files in os.walk(baseDir + "/Test"):
     for name in files:
         # Solo usamos archivos de imágnes
         if imghdr.what(os.path.join(root, name)):
