@@ -7,10 +7,12 @@ import base64
 from io import BytesIO
 from PIL import Image
 import cv2
+import argparse
 
 sio = socketio.Server()
 app = Flask(__name__) #'__main__'
 speed_limit = 30
+min_speed = 20
 def img_preprocess(img):
  img = img[60:135,:,:]
  img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
@@ -27,7 +29,7 @@ def telemetry(sid, data):
     image = img_preprocess(image)
     image = np.array([image])
     steering_angle = float(model.predict(image))
-    throttle = 1.0 - speed/speed_limit
+    throttle = 1.0 - 0.5 * abs(steering_angle) - abs(speed/speed_limit)
     print('{} {} {}'.format(steering_angle, throttle, speed))
     send_control(steering_angle, throttle) 
 
@@ -43,6 +45,15 @@ def send_control(steering_angle, throttle):
     })
 
 if __name__ == '__main__':
-    model = load_model('modelPista2.h5')
+    parser = argparse.ArgumentParser(description='Remote Driving')
+    parser.add_argument(
+        'model',
+        type=str,
+        help='Path to model h5 file. Model should be on the same path.'
+    )
+    args = parser.parse_args()
+
+    #load model
+    model = load_model(args.model)
     app = socketio.Middleware(sio, app)
     eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
